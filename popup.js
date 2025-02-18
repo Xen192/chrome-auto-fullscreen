@@ -1,21 +1,10 @@
-function isProtectedPage(url) {
-  const protectedPatterns = [
-    /^chrome:\/\//i, // Chrome internal pages
-    /^chrome-extension:\/\//i, // Extension pages
-    /^devtools:\/\//i, // Developer tools
-    /^view-source:\/\//i, // View source pages
-    /^about:/i, // About pages
-    /^edge:\/\//i, // Edge internal pages (for compatibility)
-    /^file:\/\//i, // Local files
-  ];
-
-  return protectedPatterns.some((pattern) => pattern.test(url));
-}
+import { isProtectedPage } from "./utils.js";
 
 document.addEventListener("DOMContentLoaded", () => {
-  const toggleSwitch = document.getElementById("toggleSwitch");
-  const statusText = document.getElementById("statusText");
+  const toggleFullscreen = document.getElementById("toggleFullscreen");
+  const toggleTabFocus = document.getElementById("toggleTabFocus");
   const controlsContainer = document.getElementById("controlsContainer");
+  const subSettingsContainer = document.getElementById("subSettingsContainer");
 
   // Check if current page is protected
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
@@ -23,26 +12,38 @@ document.addEventListener("DOMContentLoaded", () => {
     const isProtected = isProtectedPage(currentTab.url);
 
     if (isProtected) {
-      toggleSwitch.disabled = true;
+      toggleFullscreen.disabled = true;
+      toggleTabFocus.disabled = true;
       controlsContainer.classList.add("disabled");
     }
   });
 
   // Load saved state
   chrome.storage.local
-    .get(["enabled"])
+    .get(["enabled", "isTabAutoFocusEnabled"])
     .then((result) => {
-      toggleSwitch.checked = result.enabled ?? false;
-      statusText.textContent = toggleSwitch.checked ? "Enabled" : "Disabled";
+      toggleFullscreen.checked = result.enabled ?? false;
+      toggleTabFocus.checked = result.isTabAutoFocusEnabled ?? false;
+
+      if (!toggleFullscreen.checked) {
+        toggleTabFocus.disabled = true;
+        subSettingsContainer.classList.add("disabled");
+      }
     })
     .catch((error) => {
-      console.log("Failed to load state:", error);
-      statusText.textContent = "Error loading state";
+      console.debug("Failed to load state:", error);
     });
 
-  toggleSwitch.addEventListener("change", () => {
-    const enabled = toggleSwitch.checked;
-    statusText.textContent = enabled ? "Enabled" : "Disabled";
+  toggleFullscreen.addEventListener("change", () => {
+    const enabled = toggleFullscreen.checked;
+
+    if (enabled) {
+      toggleTabFocus.disabled = false;
+      subSettingsContainer.classList.remove("disabled");
+    } else {
+      toggleTabFocus.disabled = true;
+      subSettingsContainer.classList.add("disabled");
+    }
 
     // Save state
     chrome.storage.local
@@ -60,8 +61,15 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       })
       .catch((error) => {
-        console.log("Failed to update state:", error);
-        statusText.textContent = "Error updating state";
+        console.debug("Failed to update state:", error);
       });
+  });
+
+  toggleTabFocus.addEventListener("change", () => {
+    const isTabAutoFocusEnabled = toggleTabFocus.checked;
+
+    chrome.storage.local.set({ isTabAutoFocusEnabled }).catch((error) => {
+      console.debug("Failed to update state:", error);
+    });
   });
 });

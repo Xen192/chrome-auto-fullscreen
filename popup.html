@@ -5,7 +5,6 @@
       body {
         width: 200px;
         padding: 10px;
-        font-family: Arial, sans-serif;
         color: rgb(19, 237, 19);
         background-color: #121811;
       }
@@ -53,9 +52,22 @@
         margin-left: 10px;
         vertical-align: super;
       }
-      .toggle-container {
+      .feature-row {
         display: flex;
         align-items: center;
+      }
+      .feature-label {
+        flex-grow: 1;
+      }
+      h3 {
+        margin-top: 0;
+        margin-bottom: 15px;
+      }
+      .divider {
+        height: 1px;
+        margin-top: 8px;
+        margin-bottom: 8px;
+        background-color: rgb(16, 170, 16);
       }
       .disabled {
         opacity: 0.5;
@@ -64,14 +76,26 @@
     </style>
   </head>
   <body>
-    <h3>Auto Fullscreen</h3>
-    <div class="toggle-container" id="controlsContainer">
-      <label class="switch">
-        <input type="checkbox" id="toggleSwitch" />
-        <span class="slider"></span>
-      </label>
-      <span class="status" id="statusText">Disabled</span>
+    <h3>Chrome Auto Fullscreen</h3>
+    <div id="controlsContainer">
+      <div class="feature-row">
+        <span class="feature-label">Fullscreen Mode</span>
+        <label class="switch">
+          <input type="checkbox" id="toggleFullscreen" />
+          <span class="slider"></span>
+        </label>
+      </div>
+      <div id="subSettingsContainer">
+        <div class="divider"></div>
+        <div class="feature-row">
+          <span class="feature-label">Auto Focus New Tabs</span>
+          <label class="switch">
+            <input type="checkbox" id="toggleTabFocus" />
+            <span class="slider"></span>
+          </label>
+        </div>
+      </div>
     </div>
-    <script src="popup.js"></script>
+    <script type="module" src="popup.js"></script>
   </body>
 </html>

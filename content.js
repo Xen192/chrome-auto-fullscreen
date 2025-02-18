@@ -1,15 +1,17 @@
 let isFullscreen = false;
 let isEnabled = false;
-const TRIGGER_HEIGHT = 10; // pixels from top of screen
 let timeoutId = null;
-let isConnected = false;
+
+const configs = {
+  triggerHeight: 10, // pixels from top of screen
+  reEnterDelay: 100,
+  initialLoadDelay: 500,
+};
 
 // Check if extension is still valid
 function checkConnection() {
-  if (chrome.runtime.id) {
-    isConnected = true;
-    return true;
-  }
+  if (chrome.runtime.id) return true;
+
   cleanup();
   return false;
 }
@@ -19,6 +21,11 @@ function cleanup() {
   document.removeEventListener("mousemove", handleMouseMove);
   if (timeoutId) clearTimeout(timeoutId);
 }
+
+// Listen for state changes
+chrome.storage.onChanged.addListener((changes) => {
+  if (changes.enabled !== undefined) isEnabled = changes.enabled.newValue;
+});
 
 // Safely send messages to background script
 async function sendMessageToBackground(message) {
@@ -37,51 +44,59 @@ async function sendMessageToBackground(message) {
       throw error;
     });
   } catch (error) {
-    console.log("Message sending failed:", error);
+    console.debug("Message sending failed:", error);
     return null;
   }
 }
 
+// Check if tab and window are focused
 async function checkTabAndWindowFocus() {
   const response = await sendMessageToBackground({ action: "checkFocus" });
   return response ? response.isActive : false;
 }
 
+// Check if window is devtools
+async function checkIfDisabledWindow() {
+  const response = await sendMessageToBackground({ action: "checkWindow" });
+  return response ? response.isDisabledWindow : false;
+}
+
+// Handle mouse movement and toggle fullscreen
 async function handleMouseMove(event) {
-  if (!isEnabled || !isConnected) return;
+  if (!isEnabled || !checkConnection() || (await checkIfDisabledWindow())) return;
 
   const mouseY = event.clientY;
 
   if (timeoutId) clearTimeout(timeoutId);
 
-  if (mouseY <= TRIGGER_HEIGHT && isFullscreen) {
-    sendMessageToBackground({
+  if (mouseY <= configs.triggerHeight && isFullscreen) {
+    await sendMessageToBackground({
       action: "toggleFullscreen",
       enterFullscreen: false,
     });
     isFullscreen = false;
-  } else if (mouseY > TRIGGER_HEIGHT && !isFullscreen) {
+  } else if (mouseY > configs.triggerHeight && !isFullscreen) {
     if (await checkTabAndWindowFocus())
-      timeoutId = setTimeout(() => {
-        sendMessageToBackground({
+      timeoutId = setTimeout(async () => {
+        await sendMessageToBackground({
           action: "toggleFullscreen",
           enterFullscreen: true,
         });
         isFullscreen = true;
-      }, 500);
+      }, configs.reEnterDelay);
   }
 }
 
-function initializeFullscreen() {
-  if (!checkConnection()) return;
+async function initializeFullscreen() {
+  if (!checkConnection() || (await checkIfDisabledWindow())) return;
 
-  setTimeout(() => {
-    sendMessageToBackground({
+  setTimeout(async () => {
+    await sendMessageToBackground({
       action: "toggleFullscreen",
       enterFullscreen: true,
     });
     isFullscreen = true;
-  }, 500);
+  }, configs.initialLoadDelay);
 }
 
 // Load initial state
@@ -89,22 +104,22 @@ chrome.storage.local
   .get(["enabled"])
   .then(async (result) => {
     isEnabled = result.enabled ?? false;
-    if (isEnabled && (await checkTabAndWindowFocus())) initializeFullscreen();
+    if (isEnabled && (await checkTabAndWindowFocus())) await initializeFullscreen();
   })
   .catch((error) => {
-    console.log("Failed to load initial state:", error);
+    console.debug("Failed to load initial state:", error);
   });
 
 // Listen for toggle messages from popup
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (!checkConnection()) return;
+chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
+  if (!checkConnection() || (await checkIfDisabledWindow())) return;
 
   if (request.action === "toggleExtension") {
     isEnabled = request.enabled;
     if (isEnabled && !isFullscreen) {
-      initializeFullscreen();
+      await initializeFullscreen();
     } else if (isFullscreen) {
-      sendMessageToBackground({
+      await sendMessageToBackground({
         action: "toggleFullscreen",
         enterFullscreen: false,
       });

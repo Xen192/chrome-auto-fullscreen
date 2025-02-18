@@ -1,5 +1,7 @@
 # Chrome Auto Fullscreen
 
+![Icon](icons/icon48.png)
+
 ## Overview
 
 Chrome Auto Fullscreen is a Chrome extension that automatically manages your browser's fullscreen mode based on mouse position. When enabled, the browser enters fullscreen mode automatically and exits when you move your mouse to the top of the screen, making it easy to access your browser controls and address bar when needed.
@@ -12,6 +14,7 @@ Chrome Auto Fullscreen is a Chrome extension that automatically manages your bro
 - State persistence between browser sessions
 - Configurable trigger height
 - Smoothing delay to prevent accidental triggers
+- Auto Switch to New Tab opened in fullscreen mode
 
 ## Installation
 
@@ -36,8 +39,8 @@ chrome-auto-fullscreen/
 You can customize the extension by modifying the following parameters in `content.js`:
 
 - `TRIGGER_HEIGHT`: Distance from the top of the screen that triggers fullscreen exit (default: 10 pixels)
-- Delay before re-entering fullscreen mode (default: 500ms)
-- Initial fullscreen delay after page load (default: 1000ms)
+- Delay before re-entering fullscreen mode (default: 100ms)
+- Initial fullscreen delay after page load (default: 500ms)
 
 ## Usage
 
@@ -54,6 +57,8 @@ You can customize the extension by modifying the following parameters in `conten
 
 - `tabs`: Required for fullscreen management
 - `storage`: Used to persist extension state
+- `webNavigation`: Used for New Tab Auto Focus
+- `scripting`: Used for content.js hot-reload
 
 ### Components
 
@@ -64,7 +69,6 @@ You can customize the extension by modifying the following parameters in `conten
 ### State Management
 
 - Extension state (enabled/disabled) is persisted using Chrome's storage API
-- Fullscreen state is managed per-tab
 - Includes debouncing to prevent rapid state changes
 
 ## Development
@@ -107,10 +111,3 @@ Feel free to submit issues and enhancement requests. To contribute:
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
-
-## Version History
-
-- 0.0.1: Initial release
-  - Basic fullscreen functionality
-  - Toggle switch popup
-  - State persistence
