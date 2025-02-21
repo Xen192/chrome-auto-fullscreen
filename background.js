@@ -1,20 +1,7 @@
 import { isProtectedPage } from "./utils.js";
 
-let isFullscreen = false;
 let isTabAutoFocusEnabled = false;
 let previousState = null;
-
-// Function to inject content script into a tab
-async function injectContentScript(tabId) {
-  try {
-    await chrome.scripting.executeScript({
-      target: { tabId },
-      files: ["content.js"],
-    });
-  } catch (err) {
-    console.error(`Failed to inject content script: ${err}`);
-  }
-}
 
 // Listen for extension install/update
 chrome.runtime.onInstalled.addListener(async () => {
@@ -22,7 +9,15 @@ chrome.runtime.onInstalled.addListener(async () => {
   const tabs = await chrome.tabs.query({ url: "<all_urls>" });
   for (const tab of tabs) {
     if (isProtectedPage(tab.url)) continue;
-    injectContentScript(tab.id);
+    // Inject content script into a tab
+    try {
+      await chrome.scripting.executeScript({
+        target: { tabId: tab.id },
+        files: ["content.js"],
+      });
+    } catch (err) {
+      console.error(`Failed to inject content script: ${err}`);
+    }
   }
 });
 
@@ -37,10 +32,10 @@ chrome.storage.onChanged.addListener((changes) => {
 });
 
 chrome.webNavigation.onCommitted.addListener((details) => {
-  if (!isFullscreen || !isTabAutoFocusEnabled) return;
+  if (!isTabAutoFocusEnabled) return;
 
   // Only handle new tab navigations
-  if (details.transitionType === "link")
+  if (["link", "auto_bookmark"].includes(details.transitionType))
     // Small delay to ensure tab is fully created
     setTimeout(async () => await chrome.tabs.update(details.tabId, { active: true }), 100);
 });
@@ -67,7 +62,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         });
 
         if (request.enterFullscreen && window.state !== "fullscreen") previousState = window.state;
-        isFullscreen = request.enterFullscreen;
       });
       break;
   }

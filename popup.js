@@ -4,7 +4,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const toggleFullscreen = document.getElementById("toggleFullscreen");
   const toggleTabFocus = document.getElementById("toggleTabFocus");
   const controlsContainer = document.getElementById("controlsContainer");
-  const subSettingsContainer = document.getElementById("subSettingsContainer");
 
   // Check if current page is protected
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
@@ -24,11 +23,6 @@ document.addEventListener("DOMContentLoaded", () => {
     .then((result) => {
       toggleFullscreen.checked = result.enabled ?? false;
       toggleTabFocus.checked = result.isTabAutoFocusEnabled ?? false;
-
-      if (!toggleFullscreen.checked) {
-        toggleTabFocus.disabled = true;
-        subSettingsContainer.classList.add("disabled");
-      }
     })
     .catch((error) => {
       console.debug("Failed to load state:", error);
@@ -36,14 +30,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   toggleFullscreen.addEventListener("change", () => {
     const enabled = toggleFullscreen.checked;
-
-    if (enabled) {
-      toggleTabFocus.disabled = false;
-      subSettingsContainer.classList.remove("disabled");
-    } else {
-      toggleTabFocus.disabled = true;
-      subSettingsContainer.classList.add("disabled");
-    }
 
     // Save state
     chrome.storage.local
