@@ -3,6 +3,7 @@ import { isProtectedPage } from "./utils.js";
 document.addEventListener("DOMContentLoaded", () => {
   const toggleFullscreen = document.getElementById("toggleFullscreen");
   const toggleTabFocus = document.getElementById("toggleTabFocus");
+  const toggleEdgeNavigation = document.getElementById("toggleEdgeNavigation");
   const controlsContainer = document.getElementById("controlsContainer");
 
   // Check if current page is protected
@@ -13,16 +14,18 @@ document.addEventListener("DOMContentLoaded", () => {
     if (isProtected) {
       toggleFullscreen.disabled = true;
       toggleTabFocus.disabled = true;
+      toggleEdgeNavigation.disabled = true;
       controlsContainer.classList.add("disabled");
     }
   });
 
   // Load saved state
   chrome.storage.local
-    .get(["enabled", "isTabAutoFocusEnabled"])
+    .get(["enabled", "isTabAutoFocusEnabled", "isEdgeNavigationEnabled"])
     .then((result) => {
       toggleFullscreen.checked = result.enabled ?? false;
       toggleTabFocus.checked = result.isTabAutoFocusEnabled ?? false;
+      toggleEdgeNavigation.checked = result.isEdgeNavigationEnabled ?? false;
     })
     .catch((error) => {
       console.debug("Failed to load state:", error);
@@ -55,6 +58,14 @@ document.addEventListener("DOMContentLoaded", () => {
     const isTabAutoFocusEnabled = toggleTabFocus.checked;
 
     chrome.storage.local.set({ isTabAutoFocusEnabled }).catch((error) => {
+      console.debug("Failed to update state:", error);
+    });
+  });
+
+  toggleEdgeNavigation.addEventListener("change", () => {
+    const isEdgeNavigationEnabled = toggleEdgeNavigation.checked;
+
+    chrome.storage.local.set({ isEdgeNavigationEnabled }).catch((error) => {
       console.debug("Failed to update state:", error);
     });
   });

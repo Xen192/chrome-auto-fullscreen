@@ -4,7 +4,7 @@
 
 ## Overview
 
-Chrome Auto Fullscreen is a Chrome extension that automatically manages your browser's fullscreen mode based on mouse position. When enabled, the browser enters fullscreen mode automatically and exits when you move your mouse to the top of the screen, making it easy to access your browser controls and address bar when needed.
+Chrome Auto Fullscreen is a Chrome extension that automatically manages your browser's fullscreen mode based on mouse position. When enabled, the browser enters fullscreen mode automatically and exits when you move your mouse to the top of the screen, making it easy to access your browser controls and address bar when needed. The extension also supports edge navigation, allowing you to go back or forward in your browsing history by hovering on the left or right edges of the screen.
 
 ## Features
 
@@ -15,6 +15,7 @@ Chrome Auto Fullscreen is a Chrome extension that automatically manages your bro
 - Configurable trigger height
 - Smoothing delay to prevent accidental triggers
 - Auto Switch to New Tab opened in fullscreen mode
+- Edge Navigation: Go back/forward by hovering on left/right screen edges
 
 ## Installation
 
@@ -38,18 +39,26 @@ chrome-auto-fullscreen/
 
 You can customize the extension by modifying the following parameters in `content.js`:
 
-- `TRIGGER_HEIGHT`: Distance from the top of the screen that triggers fullscreen exit (default: 10 pixels)
-- Delay before re-entering fullscreen mode (default: 100ms)
-- Initial fullscreen delay after page load (default: 500ms)
+- `triggerHeight`: Distance from the top of the screen that triggers fullscreen exit (default: 10 pixels)
+- `reEnterDelay`: Delay before re-entering fullscreen mode (default: 100ms)
+- `initialLoadDelay`: Initial fullscreen delay after page load (default: 500ms)
+- `edgeTriggerWidth`: Distance from left/right edge that triggers navigation (default: 15 pixels)
+- `edgeHoverDelay`: Time to hover on edge before navigation triggers (default: 250ms)
 
 ## Usage
 
 1. Click the extension icon in your Chrome toolbar to open the popup
-2. Use the toggle switch to enable or disable the functionality
-3. When enabled:
+2. Use the toggle switches to enable or disable features:
+   - **Fullscreen Mode**: Automatic fullscreen management
+   - **Auto Focus New Tabs**: Automatically focus newly opened tabs
+   - **Edge Navigation**: Navigate back/forward using screen edges
+3. When Fullscreen Mode is enabled:
    - The browser will automatically enter fullscreen mode
    - Move your mouse to the top of the screen (within 10 pixels) to exit fullscreen
    - Move your mouse away from the top to return to fullscreen mode
+4. When Edge Navigation is enabled:
+   - Hover your mouse on the left edge of the screen for 250ms to go back
+   - Hover your mouse on the right edge of the screen for 250ms to go forward
 
 ## Technical Details
 

@@ -64,5 +64,21 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         if (request.enterFullscreen && window.state !== "fullscreen") previousState = window.state;
       });
       break;
+
+    case "navigateBack":
+      if (sender.tab) {
+        chrome.tabs.goBack(sender.tab.id).catch(() => {
+          // Ignore errors if there's no history to go back to
+        });
+      }
+      break;
+
+    case "navigateForward":
+      if (sender.tab) {
+        chrome.tabs.goForward(sender.tab.id).catch(() => {
+          // Ignore errors if there's no history to go forward to
+        });
+      }
+      break;
   }
 });
